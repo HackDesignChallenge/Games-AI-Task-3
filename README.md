@@ -9,3 +9,4 @@ When submitting your work please include the following info about the game:
 - Controls
 - Credits
 - Software & version used
+- Briefly describe the AI - what type it is and how it's implemented
