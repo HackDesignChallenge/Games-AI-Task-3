@@ -1,4 +1,4 @@
-# Games-AI-Task3
+# Games-AI-Task-3
 Teach a Bot to Play a Game
 
 Create a bot that plays an already existing casual game. 
