@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3749700653200655991}
   - component: {fileID: 585889435139610493}
   m_Layer: 0
-  m_Name: Vhod_Asansior
+  m_Name: TUNNEL_START
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49,7 +49,7 @@ MeshRenderer:
   m_GameObject: {fileID: 776618619829328620}
   m_Enabled: 1
   m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1

@@ -1,7 +1,9 @@
 ﻿<Properties StartupConfiguration="{FDA84006-6CDF-60D1-F8E1-CDF696BE4E50}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/PythonBridge.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/TurnManager.cs">
     <Files>
-      <File FileName="Assets/Scripts/PythonBridge.cs" Line="28" Column="36" />
+      <File FileName="Assets/Scripts/LevelManager.cs" Line="16" Column="5" />
+      <File FileName="Assets/Scripts/PawnScript.cs" Line="16" Column="5" />
+      <File FileName="Assets/Scripts/TurnManager.cs" Line="8" Column="16" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -9,7 +11,7 @@
           <Node name="Task 3" expanded="True">
             <Node name="Assets" expanded="True">
               <Node name="Scripts" expanded="True">
-                <Node name="PythonBridge.cs" selected="True" />
+                <Node name="TurnManager.cs" selected="True" />
               </Node>
             </Node>
           </Node>

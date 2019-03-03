@@ -20,7 +20,7 @@ public class PythonBridge : MonoBehaviour
 
     IEnumerator PostText(string jsonString)
     {
-        UnityWebRequest request = UnityWebRequest.Put(todo2, jsonString);
+        UnityWebRequest request = UnityWebRequest.Put("https://z1.data-qubit.com/todos/todo2", jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.Send();
     }
