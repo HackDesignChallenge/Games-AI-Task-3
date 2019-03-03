@@ -5,9 +5,13 @@ using UnityEngine.Networking;
 
 public class PythonBridge : MonoBehaviour
 {
+    private string todo1 = "https://z1.data-qubit.com/todos/todo1";
+    private string todo2 = "https://z1.data-qubit.com/todos/todo2";
+    private string todo3 = "https://z1.data-qubit.com/todos/todo3";
+
     void Start()
     {
-        //StartCoroutine(GetText("https://z1.data-qubit.com/todos/todo1"));
+        StartCoroutine(GetText(todo1));
 
         Task t = new Task("Unity Task");
         StartCoroutine(PostText(JsonUtility.ToJson(t)));
@@ -16,7 +20,7 @@ public class PythonBridge : MonoBehaviour
 
     IEnumerator PostText(string jsonString)
     {
-        UnityWebRequest request = UnityWebRequest.Put("https://z1.data-qubit.com/todos/todo2", jsonString);
+        UnityWebRequest request = UnityWebRequest.Put(todo2, jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.Send();
     }
