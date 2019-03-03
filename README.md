@@ -37,7 +37,11 @@ The game introduces the players to the evolutional algorithms. Playing as the de
 
 # Diversifiers used:
 Gimme an interview, please – Incorporate a local legend / funny story in the game you create.
+
 Gandy - The game must have zero violence in its gameplay. Conflicts must have resolutions based on logic
+
 Back to 1823 – The game you create has an atmosphere from the XIX century.
+
 Open API – Implement the use of data from a public API in your game.
+
 Open it - The game only uses materials found in the public domain.
