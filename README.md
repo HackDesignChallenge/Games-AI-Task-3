@@ -11,7 +11,7 @@ Unfortunatelly The Blues players are trying to beat them to it, but this time th
 
 
 # Screenshot:
-![alt text](https:// "Title screen")
+![alt text](https://github.com/HackDesignChallenge/Games-AI-Task-3/blob/develop/Task%203/Assets/Art/title_minyoro.png "Title screen")
 
 # Controls:
 
