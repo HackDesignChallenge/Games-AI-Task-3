@@ -4,7 +4,9 @@
 
 Games AI Task 3: Teach a Bot to Play a Game.
 
+
 # Short description:
+MC Уъфcho is leading his
 
 
 # Screenshot:
