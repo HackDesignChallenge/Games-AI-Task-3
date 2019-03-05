@@ -1,56 +1,30 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PawnScript : MonoBehaviour
 {
-    public bool isReturning = false;
     public int currentPosition;
+    public GameObject level;
 
-    private static readonly int MAX_FIELDS = 100;
-
-    void Start()
+    void OnMouseDown()
     {
-        
-    }
-
-    void Update()
-    {
-        
-    }
-
-    public void GoToPosition(int diceRoll)
-    {
-        if (isReturning) { 
-            if (currentPosition + diceRoll > MAX_FIELDS)
-            {
-                isReturning = true;
-                currentPosition = 2 * MAX_FIELDS - currentPosition - diceRoll;
-            }
-            else
-            {
-                currentPosition += diceRoll;
-            }
-        }
-        else
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit))
         {
-            currentPosition -= diceRoll;
-            if (currentPosition <= 0)
-            {
-                GameWon();
-            }
+            GameObject.Find("GameManager").GetComponent<TurnManager>().PawnClicked(hit.transform.gameObject);
         }
-        //TUNNEL / SNAKE effect
-        AnimateToPosition(currentPosition);
     }
 
-    private void AnimateToPosition(int position)
+    public void GoToPosition(int position)
     {
-
-    }
-
-    private void GameWon()
-    {
-        print("Game Won!!!");
+        currentPosition = position;
+        Vector3 pawnPosition = level.transform.GetChild(position).position;
+        pawnPosition.x = pawnPosition.x + 3;
+        pawnPosition.y = pawnPosition.y + 1;
+        pawnPosition.z = pawnPosition.z - 1;
+        transform.position = pawnPosition;
     }
 }

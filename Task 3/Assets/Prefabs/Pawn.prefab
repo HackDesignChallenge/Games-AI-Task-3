@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 590833596772099552}
   - component: {fileID: 6032414696683147163}
   - component: {fileID: 6445361295068500083}
+  - component: {fileID: 7099775599723063565}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Untagged
@@ -82,6 +83,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acc75221d14d4496e8a38fc3af2c4641, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentPosition: 0
+  level: {fileID: 0}
+--- !u!135 &7099775599723063565
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590833596772099567}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6656448281363581945
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,7 +156,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 6cf4bb03a64694ea5990d5e5e042fe30, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

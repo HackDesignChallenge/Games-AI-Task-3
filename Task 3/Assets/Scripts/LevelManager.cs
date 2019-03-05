@@ -21,9 +21,21 @@ public class LevelManager : MonoBehaviour
         {
             blocks.Add(block);
         }
-
-        PostSnakesRequest();
-        PostTunnelsRequest();
+        PostInitVal();
+        Invoke("PostTunnelsRequest", 0.5f);
+        Invoke("PostSnakesRequest", 1f);
+    }
+    private async System.Threading.Tasks.Task PostInitVal()
+    {
+        using (var httpClient = new HttpClient())
+        {
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), url))
+            {
+                request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"init_val\"}", Encoding.UTF8, "application/json");
+                var response = await httpClient.SendAsync(request);
+                string init_val = await response.Content.ReadAsStringAsync();
+            }
+        }
     }
 
     private async System.Threading.Tasks.Task PostSnakesRequest()
@@ -47,7 +59,7 @@ public class LevelManager : MonoBehaviour
                 {
                     snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
                 }
-                for (int i = 0; i < snakesTilesString.Length; i++)
+                for (int i = 0; i < snakeTiles.Length; i++)
                 {
                     snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
                     Transform block = blocks[snakeTiles[i] - 1] as Transform;
@@ -62,7 +74,7 @@ public class LevelManager : MonoBehaviour
                     snakeAColorIndex++;
                     i++;
                 }
-                for (int i = 1; i < snakesTilesString.Length; i++)
+                for (int i = 1; i < snakeTiles.Length; i++)
                 {
                     snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
                     Transform block = blocks[snakeTiles[i] - 1] as Transform;
