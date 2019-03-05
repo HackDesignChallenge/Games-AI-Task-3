@@ -1,9 +1,9 @@
 ﻿<Properties StartupConfiguration="{FDA84006-6CDF-60D1-F8E1-CDF696BE4E50}|">
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/TurnManager.cs">
     <Files>
-      <File FileName="Assets/Scripts/LevelManager.cs" Line="16" Column="5" />
-      <File FileName="Assets/Scripts/PawnScript.cs" Line="16" Column="5" />
-      <File FileName="Assets/Scripts/TurnManager.cs" Line="8" Column="16" />
+      <File FileName="Assets/Scripts/LevelManager.cs" Line="24" Column="12" />
+      <File FileName="Assets/Scripts/PawnScript.cs" Line="12" Column="6" />
+      <File FileName="Assets/Scripts/TurnManager.cs" Line="88" Column="60" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -15,6 +15,11 @@
               </Node>
             </Node>
           </Node>
+        </State>
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State>
+          <Value>response</Value>
         </State>
       </Pad>
     </Pads>
