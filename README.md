@@ -13,6 +13,9 @@ Unfortunatelly The Blues players are trying to beat them to it, but this time th
 # Screenshot:
 ![alt text](https://github.com/HackDesignChallenge/Games-AI-Task-3/blob/develop/castleAi.png "Title screen")
 
+# Build:
+[Task 3 build](https://github.com/HackDesignChallenge/Games-AI-Task-3/blob/develop/Task%203/Task%203%20Build.zip)
+
 # Controls:
 
 Mouse point and click.
