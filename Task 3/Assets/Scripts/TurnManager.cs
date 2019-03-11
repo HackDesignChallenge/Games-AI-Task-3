@@ -10,32 +10,38 @@ using Random = UnityEngine.Random;
 
 public class TurnManager : MonoBehaviour
 {
+    public bool aiSoloMode;
     public GameObject level;
     public GameObject gameInfo;
     public GameObject menuPawns;
     public GameObject levelPawns;
     public Sprite[] diceSides;
+    public Sprite heroSword;
+    public Sprite skeletonSword;
     public GameObject[] clickablePawns;
     public float diceRollDuration;
 
+    private const int MAX_TILES = 100;
     private const string URL = "https://z1.data-qubit.com";
 
-    private bool aiPawn1Finished;
-    private bool aiPawn2Finished;
-    private bool aiPawn3Finished;
-    private bool humanPawn1Finished;
-    private bool humanPawn2Finished;
-    private bool humanPawn3Finished;
-    private int lastDiceRoll;
     public int aiPawn1Progress;
     public int aiPawn2Progress;
     public int aiPawn3Progress;
     public int humanPawn1Progress;
     public int humanPawn2Progress;
     public int humanPawn3Progress;
+    public bool humanPawn1Returning;
+    public bool humanPawn2Returning;
+    public bool humanPawn3Returning;
+    public bool humanPawn1Complete;
+    public bool humanPawn2Complete;
+    public bool humanPawn3Complete;
+
+    private int lastDiceRoll;
     private int aiDiceRoll;
     private int aiGameWon;
     private string lastAiMove;
+    
     private Coroutine rollDiceCoroutine;
     private GameObject dice;
     private GameObject diceRollingInfo;
@@ -49,6 +55,8 @@ public class TurnManager : MonoBehaviour
     private GameObject aiPawnsInfoRed;
     private GameObject aiPawnsInfoGreen;
     private GameObject aiPawnsInfoBlue;
+    private GameObject gameWonPanel;
+    private GameObject gameLostPanel;
     private GameObject levelPawnAiRed;
     private GameObject levelPawnAiGreen;
     private GameObject levelPawnAiBlue;
@@ -56,6 +64,7 @@ public class TurnManager : MonoBehaviour
     private GameObject levelPawnHumanGreen;
     private GameObject levelPawnHumanBlue;
     private LevelManager levelManagerScript;
+    private SoundManager soundManager;
 
     private void Awake()
     {
@@ -64,6 +73,8 @@ public class TurnManager : MonoBehaviour
         diceRollingInfo = gameInfo.transform.GetChild(1).gameObject;
         aiMoveInfo = gameInfo.transform.GetChild(2).gameObject;
         humanMoveInfo = gameInfo.transform.GetChild(3).gameObject;
+        gameWonPanel = gameInfo.transform.parent.GetChild(2).gameObject;; 
+        gameLostPanel = gameInfo.transform.parent.GetChild(3).gameObject;
         // Pawns Info Section
         aiPawnsInfo = menuPawns.transform.GetChild(0).gameObject;
         humanPawnsInfo = menuPawns.transform.GetChild(1).gameObject;
@@ -82,10 +93,17 @@ public class TurnManager : MonoBehaviour
         levelPawnAiBlue = levelPawns.transform.GetChild(5).gameObject;
         // Other Variables
         levelManagerScript = GetComponent<LevelManager>();
+        soundManager = GetComponent<SoundManager>();
+        if (aiSoloMode)
+        {
+            diceRollDuration = 0.01f;
+        }
     }
 
     private void Start()
     {
+        gameWonPanel.SetActive(false);
+        gameLostPanel.SetActive(false);
         if (Random.Range(0, 2) == 0)
         {
             Invoke("HumanMove", 2f);
@@ -103,6 +121,11 @@ public class TurnManager : MonoBehaviour
 
     private void HumanMove()
     {
+        if (aiSoloMode)
+        {
+            AiMove();
+            return;;
+        }
         humanMoveInfo.SetActive(true);
         humanPawnsInfo.SetActive(true);
         aiMoveInfo.SetActive(false);
@@ -232,7 +255,9 @@ public class TurnManager : MonoBehaviour
     {
         GameObject pawn;
         GameObject menuPawn;
-        int pawnProgress = 0;
+        var pawnProgress = 0;
+        
+        // Ai
         if (aiPlayer)
         {
             switch (pawnSelected)
@@ -242,20 +267,56 @@ public class TurnManager : MonoBehaviour
                     pawn = levelPawnAiRed;
                     menuPawn = aiPawnsInfoRed;
                     pawnProgress = aiPawn1Progress + pawnMoveTiles;
+                    if (pawnProgress < aiPawn1Progress)
+                    {
+                        pawn.GetComponent<SpriteRenderer>().sprite = skeletonSword;
+                        pawn.GetComponent<SpriteRenderer>().flipX = true;
+                    }
                     break;
                 case 2:
                     pawn = levelPawnAiGreen;
                     menuPawn = aiPawnsInfoGreen;
                     pawnProgress = aiPawn2Progress + pawnMoveTiles;
+                    if (pawnProgress < aiPawn2Progress)
+                    {
+                        pawn.GetComponent<SpriteRenderer>().sprite = skeletonSword;
+                        pawn.GetComponent<SpriteRenderer>().flipX = true;
+                    }
                     break;
                 case 3:
                     pawn = levelPawnAiBlue;
                     menuPawn = aiPawnsInfoBlue;
                     pawnProgress = aiPawn3Progress + pawnMoveTiles;
+                    if (pawnProgress < aiPawn3Progress)
+                    {
+                        pawn.GetComponent<SpriteRenderer>().sprite = skeletonSword;
+                        pawn.GetComponent<SpriteRenderer>().flipX = true;
+                    }
                     break;
+            }
+
+            if (pawnProgress >= 0)
+            {
+                if (pawnProgress <= MAX_TILES)
+                {
+                    // Ai Pawn Movement
+                    pawn.transform.localPosition = level.transform.GetChild(pawnProgress - 1).localPosition;
+                    soundManager.PlayMoveSfx();
+                    // Ai Special Tile Movement
+                    StartCoroutine(SpecialTileEffect(pawnProgress, pawn, true, pawnSelected, 0.5f));                    
+                }                
+            }
+            else
+            {
+                pawn.SetActive(false);
+                menuPawn.SetActive(true);
+                menuPawn.GetComponent<Image>().sprite = skeletonSword;
+                Invoke("HumanMove", 1f);
+                return;
             }
             Invoke("HumanMove", 1f);
         }
+        // Human
         else
         {
             pawnMoveTiles = lastDiceRoll;
@@ -266,73 +327,148 @@ public class TurnManager : MonoBehaviour
                 case 1:
                     pawn = levelPawnHumanRed;
                     menuPawn = humanPawnsInfoRed;
-                    pawnProgress = humanPawn1Progress + pawnMoveTiles;
-                    humanPawn1Progress += pawnMoveTiles;
-                    //TODO Turning back
+
+                    if (!humanPawn1Returning) {                        
+                        // Going forward
+                        humanPawn1Progress += pawnMoveTiles;
+                        pawnProgress = humanPawn1Progress;
+                        // Turn point
+                        if (pawnProgress >= MAX_TILES)
+                        {
+                            pawn.GetComponent<SpriteRenderer>().sprite = heroSword;
+                            pawn.GetComponent<SpriteRenderer>().flipX = true;
+                            humanPawn1Returning = true;
+                            pawnProgress = 2 * MAX_TILES - pawnProgress;
+                            humanPawn1Progress = pawnProgress; 
+                        }
+                    }
+                    else
+                    {
+                        humanPawn1Progress -= pawnMoveTiles;
+                        pawnProgress = humanPawn1Progress;
+                        if (pawnProgress <= 0)
+                        {
+                            humanPawn1Complete = true;
+                            pawn.SetActive(false);
+                            menuPawn.SetActive(true);
+                            menuPawn.GetComponent<Image>().sprite = heroSword;
+                            Invoke("AiMove", 1f);
+                            return;
+                        }
+                    }
                     break;
                 case 2:
                     pawn = levelPawnHumanGreen;
                     menuPawn = humanPawnsInfoGreen;
-                    pawnProgress = humanPawn2Progress + pawnMoveTiles;
-                    humanPawn2Progress += pawnMoveTiles;
-                    //TODO Turning back
+
+                    if (!humanPawn2Returning)
+                    {
+                        // Going forward
+                        humanPawn2Progress += pawnMoveTiles;
+                        pawnProgress = humanPawn2Progress;
+                        // Turn point
+                        if (pawnProgress >= MAX_TILES)
+                        {
+                            pawn.GetComponent<SpriteRenderer>().sprite = heroSword;
+                            pawn.GetComponent<SpriteRenderer>().flipX = true;
+                            humanPawn2Returning = true;
+                            pawnProgress = 2 * MAX_TILES - pawnProgress;
+                            humanPawn2Progress = pawnProgress;
+                        }
+                    }
+                    else
+                    {
+                        humanPawn2Progress -= pawnMoveTiles;
+                        pawnProgress = humanPawn2Progress;
+                        if (pawnProgress <= 0)
+                        {
+                            humanPawn2Complete = true;
+                            pawn.SetActive(false);
+                            menuPawn.SetActive(true);
+                            menuPawn.GetComponent<Image>().sprite = heroSword;
+                            Invoke("AiMove", 1f);
+                            return;
+                        }
+                    }
                     break;
                 case 3:
                     pawn = levelPawnHumanBlue;
                     menuPawn = humanPawnsInfoBlue;
-                    pawnProgress = humanPawn3Progress + pawnMoveTiles;
-                    humanPawn3Progress += pawnMoveTiles;
-                    //TODO Turning back
+
+                    if (!humanPawn3Returning)
+                    {
+                        // Going forward
+                        humanPawn3Progress += pawnMoveTiles;
+                        pawnProgress = humanPawn3Progress;
+                        // Turn point
+                        if (pawnProgress >= MAX_TILES)
+                        {
+                            pawn.GetComponent<SpriteRenderer>().sprite = heroSword;
+                            pawn.GetComponent<SpriteRenderer>().flipX = true;
+                            humanPawn3Returning = true;
+                            pawnProgress = 2 * MAX_TILES - pawnProgress;
+                            humanPawn3Progress = pawnProgress;
+                        }
+                    }
+                    else
+                    {
+                        humanPawn3Progress -= pawnMoveTiles;
+                        pawnProgress = humanPawn3Progress;
+                        if (pawnProgress <= 0)
+                        {
+                            humanPawn3Complete = true;
+                            pawn.SetActive(false);
+                            menuPawn.SetActive(true);
+                            menuPawn.GetComponent<Image>().sprite = heroSword;
+                            Invoke("AiMove", 1f);
+                            return;
+                        }
+                    }
                     break;
             }
+
+            // Human Pawn Movement
+            pawn.transform.localPosition = level.transform.GetChild(pawnProgress - 1).localPosition;
+            soundManager.PlayMoveSfx();
+            // Human Special Tile Movement
+            StartCoroutine(SpecialTileEffect(pawnProgress, pawn, false, pawnSelected, 0.5f));
+            
             Invoke("AiMove", 1f);
         }
-
+        
         if (!pawn.activeSelf)
         {
             pawn.SetActive(true);
             menuPawn.SetActive(false);
         }
+    }
 
-        // Pawn Movement
-        pawn.transform.localPosition = level.transform.GetChild(pawnProgress - 1).localPosition;
+    private IEnumerator SpecialTileEffect(int pawnProgress, GameObject pawn, bool aiPlayer, int pawnSelected, float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
         var postEffectTile = GetSpecialTile(pawnProgress);
-        if (postEffectTile != 0)
+        if (postEffectTile == 0) yield break;
+        pawn.transform.localPosition = level.transform.GetChild(postEffectTile - 1).localPosition;
+        soundManager.PlayMoveSpecialSfx();
+        if (aiPlayer)
         {
-            pawn.transform.localPosition = level.transform.GetChild(postEffectTile - 1).localPosition;
-            if (aiPlayer)
+            pawnProgress = postEffectTile;
+        }
+        else
+        {
+            switch (pawnSelected)
             {
-                switch (pawnSelected)
-                {
-                    default:
-                    case 1:
-                        pawnProgress = postEffectTile;
-                        break;
-                    case 2:
-                        pawnProgress = postEffectTile;
-                        break;
-                    case 3:
-                        pawnProgress = postEffectTile;
-                        break;
-                }
+                default:
+                case 1:
+                    humanPawn1Progress = postEffectTile;
+                    break;
+                case 2:
+                    humanPawn2Progress = postEffectTile;
+                    break;
+                case 3:
+                    humanPawn3Progress = postEffectTile;
+                    break;
             }
-            else
-            {
-                switch (pawnSelected)
-                {
-                    default:
-                    case 1:
-                        humanPawn1Progress = postEffectTile;
-                        break;
-                    case 2:
-                        humanPawn2Progress = postEffectTile;
-                        break;
-                    case 3:
-                        humanPawn3Progress = postEffectTile;
-                        break;
-                }
-            }
-
         }
     }
 
@@ -359,12 +495,23 @@ public class TurnManager : MonoBehaviour
         return 0;
     }
 
-    //TODO Winning game state
-    private void GameWonByAi()
+    private void Update()
     {
         if (aiGameWon == 1)
         {
-            print("AI Won the Game!!!");
+            GameEnd(gameLostPanel);
         }
+        if (humanPawn1Complete && humanPawn2Complete && humanPawn3Complete)
+        {
+            GameEnd(gameWonPanel);
+        }    
     }
+
+    private void GameEnd(GameObject endPanel)
+    {
+        StopAllCoroutines();
+        soundManager.PlayGameEndSfx();
+        endPanel.SetActive(true);
+    }
+    
 }
