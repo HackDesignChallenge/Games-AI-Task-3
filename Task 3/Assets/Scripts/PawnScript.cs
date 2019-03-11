@@ -1,30 +1,40 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PawnScript : MonoBehaviour
 {
-    public int currentPosition;
-    public GameObject level;
+    public GameObject gameManager;
+    public bool isInteractable;
+    private TurnManager turnManager;
 
-    void OnMouseDown()
+    private void Awake()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
-        {
-            GameObject.Find("GameManager").GetComponent<TurnManager>().PawnClicked(hit.transform.gameObject);
-        }
+        turnManager = gameManager.GetComponent<TurnManager>();
     }
 
-    public void GoToPosition(int position)
+    public void ClickRedHumanPawn()
     {
-        currentPosition = position;
-        Vector3 pawnPosition = level.transform.GetChild(position).position;
-        pawnPosition.x = pawnPosition.x + 3;
-        pawnPosition.y = pawnPosition.y + 1;
-        pawnPosition.z = pawnPosition.z - 1;
-        transform.position = pawnPosition;
+        turnManager.ClickOnPawn(1, false, 1);
+    }
+
+    public void ClickGreenHumanPawn()
+    {
+        turnManager.ClickOnPawn(2, false, 1);
+    }
+
+    public void ClickBlueHumanPawn()
+    {
+        turnManager.ClickOnPawn(3, false, 1);
+    }
+
+    public void SetInteractable()
+    {
+        isInteractable = true;
+    }
+
+    public void SetNonInteractable()
+    {
+        isInteractable = false;
     }
 }

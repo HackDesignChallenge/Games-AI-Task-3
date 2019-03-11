@@ -1,35 +1,41 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class LevelManager : MonoBehaviour
 {
     public GameObject level;
-    public ArrayList blocks;
 
-    private readonly string url = "https://z1.data-qubit.com";
-    private readonly string[] snakeColors = { "#6d9cff", "#2d851f", "#c46af6", "#4fce43", "#054158", "#bc0afb", "#054f7c", "#32b000", "#1f6aa3", "#410490" };
-    private readonly string[] tunnelColors = { "#f0ff00", "#fdcc00", "#f95c5c", "#ffa951", "#ff9898", "#9f2e08", "#f24c14", "#ff0000", "#ff7878", "#ff3eed" };
+    private const string URL = "https://z1.data-qubit.com";
+    private readonly string[] dungeonColors = {
+        "#e6194B", "#ffe119", "#3cb44b", "#4363d8", "#f032e6", 
+        "#f58231", "#bfef45", "#42d4f4", "#911eb4", "#a9a9a9" 
+    };
 
-    void Start()
+    private int[] tunnelsArray;
+    private int[] snakesArray;
+    private ArrayList blocks;
+
+    private void Awake()
     {
         blocks = new ArrayList();
         foreach (Transform block in level.transform)
         {
             blocks.Add(block);
         }
-        PostInitVal();
-        Invoke("PostTunnelsRequest", 0.5f);
-        Invoke("PostSnakesRequest", 1f);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        ResetGameLevel();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        Invoke("GetTunnels", 0.1f);
+        Invoke("GetSnakes", 0.2f);
     }
-    private async System.Threading.Tasks.Task PostInitVal()
+
+    private async System.Threading.Tasks.Task ResetGameLevel()
     {
         using (var httpClient = new HttpClient())
         {
-            using (var request = new HttpRequestMessage(new HttpMethod("POST"), url))
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), URL))
             {
                 request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"init_val\"}", Encoding.UTF8, "application/json");
                 var response = await httpClient.SendAsync(request);
@@ -38,114 +44,104 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    private async System.Threading.Tasks.Task PostSnakesRequest()
+    private async System.Threading.Tasks.Task GetTunnels()
     {
-        int snakeAColorIndex = 0;
-        int snakeBColorIndex = 0;
+        var colorIndex = 0;
         using (var httpClient = new HttpClient())
         {
-            using (var request = new HttpRequestMessage(new HttpMethod("POST"), url))
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), URL))
+            {
+                request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"fill_tunnels\"}", Encoding.UTF8, "application/json");
+
+                var response = await httpClient.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+                var tunnels = content.Substring(30);
+                tunnels = tunnels.Remove(tunnels.Length - 13);
+                print("Tunnels: " + tunnels);
+
+                var tunnelsStringArray = tunnels.Split(',');
+                tunnelsArray = new int[tunnelsStringArray.Length];
+                for (var i = 0; i < tunnelsStringArray.Length; i++)
+                {
+                    Color currentColor = new Color();
+                    if (ColorUtility.TryParseHtmlString(dungeonColors[colorIndex], out Color color))
+                    {
+                        currentColor = color;
+                    }
+
+                    // Tunnel Entrance
+                    tunnelsArray[i] = int.Parse(tunnelsStringArray[i].Trim());
+                    Transform block = blocks[tunnelsArray[i] - 1] as Transform;
+                    block.GetChild(3).gameObject.SetActive(true);
+                    block.GetChild(3).GetComponent<SpriteRenderer>().color = currentColor;
+
+                    // Tunnel Exit
+                    i++;
+                    tunnelsArray[i] = int.Parse(tunnelsStringArray[i].Trim());
+                    block = blocks[tunnelsArray[i] - 1] as Transform;
+                    block.GetChild(4).gameObject.SetActive(true);
+                    block.GetChild(4).GetComponent<SpriteRenderer>().color = currentColor;
+
+                    // End of Tunnel pair - increase Color Index
+                    colorIndex++;
+                }
+
+            }
+        }
+    }
+
+    private async System.Threading.Tasks.Task GetSnakes()
+    {
+        var colorIndex = 0;
+        using (var httpClient = new HttpClient())
+        {
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"), URL))
             {
                 request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"fill_snakes\"}", Encoding.UTF8, "application/json");
 
                 var response = await httpClient.SendAsync(request);
-                string content = await response.Content.ReadAsStringAsync();
-                string snakes = content.Substring(30);
+                var content = await response.Content.ReadAsStringAsync();
+                var snakes = content.Substring(30);
                 snakes = snakes.Remove(snakes.Length - 13);
                 print("Snakes: " + snakes);
-                string[] snakesTilesString = snakes.Split(',');
-                int[] snakeTiles = new int[snakesTilesString.Length];
-                for (int i = 0;  i < snakesTilesString.Length; i++)
+
+                var snakesStringArray = snakes.Split(',');
+                snakesArray = new int[snakesStringArray.Length];
+                for (int i = 0; i < snakesStringArray.Length; i++)
                 {
-                    snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
-                }
-                for (int i = 0; i < snakeTiles.Length; i++)
-                {
-                    snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
-                    Transform block = blocks[snakeTiles[i] - 1] as Transform;
-                    block.GetChild(3).gameObject.SetActive(true);
-                    block.GetChild(0).gameObject.SetActive(false);
-                    block.GetChild(7).gameObject.SetActive(true);
-                    if (ColorUtility.TryParseHtmlString(snakeColors[snakeAColorIndex], out Color color))
+                    Color currentColor = new Color();
+                    if (ColorUtility.TryParseHtmlString(dungeonColors[colorIndex], out Color color))
                     {
-                        color.a = 0.25f;
-                        block.GetChild(7).gameObject.GetComponent<Renderer>().material.SetColor("_Color", color);
+                        currentColor = color;
                     }
-                    snakeAColorIndex++;
+
+                    // Snake Entrance
+                    snakesArray[i] = int.Parse(snakesStringArray[i].Trim());
+                    Transform block = blocks[snakesArray[i] - 1] as Transform;
+                    block.GetChild(1).gameObject.SetActive(true);
+                    block.GetChild(1).GetComponent<SpriteRenderer>().color = currentColor;
+
+                    // Snake Exit
                     i++;
-                }
-                for (int i = 1; i < snakeTiles.Length; i++)
-                {
-                    snakeTiles[i] = int.Parse(snakesTilesString[i].Trim());
-                    Transform block = blocks[snakeTiles[i] - 1] as Transform;
+                    snakesArray[i] = int.Parse(snakesStringArray[i].Trim());
+                    block = blocks[snakesArray[i] - 1] as Transform;
                     block.GetChild(2).gameObject.SetActive(true);
-                    block.GetChild(0).gameObject.SetActive(false);
-                    block.GetChild(7).gameObject.SetActive(true);
-                    if (ColorUtility.TryParseHtmlString(snakeColors[snakeBColorIndex], out Color color))
-                    {
-                        color.a = 0.25f;
-                        block.GetChild(7).gameObject.GetComponent<Renderer>().material.SetColor("_Color", color);
-                    }
-                    snakeBColorIndex++;
-                    i++;
+                    block.GetChild(2).GetComponent<SpriteRenderer>().color = currentColor;
+
+                    // End of Snake pair - increase Color Index
+                    colorIndex++;
                 }
             }
         }
     }
 
-    private async System.Threading.Tasks.Task PostTunnelsRequest()
+    public int[] GetLevelTunnels()
     {
-        int tunnelAColorIndex = 0;
-        int tunnelBColorIndex = 0;
-        using (var httpClient = new HttpClient())
-        {
-            using (var request = new HttpRequestMessage(new HttpMethod("POST"), url))
-            {
-                request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"fill_tunnels\"}", Encoding.UTF8, "application/json");
+        return tunnelsArray;
+    }
 
-                var response = await httpClient.SendAsync(request);
-                string content = await response.Content.ReadAsStringAsync();
-                string tunnels = content.Substring(30);
-                tunnels = tunnels.Remove(tunnels.Length - 13);
-                print("Tunnels: " + tunnels);
-                string[] tunnelsTilesString = tunnels.Split(',');
-                int[] tunnelsTiles = new int[tunnelsTilesString.Length];
-                for (int i = 0; i < tunnelsTilesString.Length; i++)
-                {
-                    tunnelsTiles[i] = int.Parse(tunnelsTilesString[i].Trim());
-                }
-                for (int i = 0; i < tunnelsTilesString.Length; i++)
-                {
-                    tunnelsTiles[i] = int.Parse(tunnelsTilesString[i].Trim());
-                    Transform block = blocks[tunnelsTiles[i] - 1] as Transform;
-                    block.GetChild(6).gameObject.SetActive(true);
-                    block.GetChild(0).gameObject.SetActive(false);
-                    block.GetChild(7).gameObject.SetActive(true);
-                    if (ColorUtility.TryParseHtmlString(tunnelColors[tunnelAColorIndex], out Color color))
-                    {
-                        color.a = 0.25f;
-                        block.GetChild(7).gameObject.GetComponent<Renderer>().material.SetColor("_Color", color);
-                    }
-                    tunnelAColorIndex++;
-                    i++;
-                }
-                for (int i = 1; i < tunnelsTilesString.Length; i++)
-                {
-                    tunnelsTiles[i] = int.Parse(tunnelsTilesString[i].Trim());
-                    Transform block = blocks[tunnelsTiles[i] - 1] as Transform;
-                    block.GetChild(5).gameObject.SetActive(true);
-                    block.GetChild(0).gameObject.SetActive(false);
-                    block.GetChild(7).gameObject.SetActive(true);
-                    if (ColorUtility.TryParseHtmlString(tunnelColors[tunnelBColorIndex], out Color color))
-                    {
-                        color.a = 0.25f;
-                        block.GetChild(7).gameObject.GetComponent<Renderer>().material.SetColor("_Color", color);
-                    }
-                    tunnelBColorIndex++;
-                    i++;
-                }
-
-            }
-        }
+    public int[] GetLevelSnakes()
+    {
+        return snakesArray;
     }
 }
