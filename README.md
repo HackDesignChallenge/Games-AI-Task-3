@@ -11,7 +11,7 @@ Unfortunatelly The Blues players are trying to beat them to it, but this time th
 
 
 # Screenshot:
-![alt text](https://github.com/HackDesignChallenge/Games-AI-Task-3/blob/develop/Task%203/Assets/Art/title_minyoro.png "Title screen")
+![alt text](https://github.com/HackDesignChallenge/Games-AI-Task-3/blob/develop/castleAi.png "Title screen")
 
 # Controls:
 
@@ -20,20 +20,20 @@ Mouse point and click.
 
 # Software & version:
 
-Unity 
+Unity 2019.1.0b3
 
 
 # Credits:
 
 Story/Game Play: Petar Nikolov, Angel Marchev
 
-3D Art: Nikoleta Zhecheva
-
 Game Development: Stefan Doychev
+
+3D Art: Nikoleta Zhecheva
 
 AI implementation: Petar Nikolov
 
-Audio: Dimitar Atanassov
+Audio: Dimitar Atanassov, Stefan Doychev
 
 
 # AI notes:
